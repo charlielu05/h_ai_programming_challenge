@@ -1,4 +1,6 @@
-month_to_dates = {
+from dataclasses import dataclass
+
+month_to_days = {
     1: 31,
     2: 28,
     3: 31,
@@ -12,6 +14,12 @@ month_to_dates = {
     11: 30,
     12: 31
 }
+
+@dataclass
+class Date:
+    year: int
+    month: int
+    day: int
 
 def return_date_from_str(date:str)->tuple[int,int,int]:
     year, month, date = [int(d) for d in date.split('-')]
@@ -28,7 +36,7 @@ def is_leap_year(year:int)->bool:
 def is_valid_date(year:int, month:int, date:int)->bool:
     valid_year = year >= 0
     valid_month = 1 <= month <= 12
-    valid_date = 1 <= date <= 29 if (is_leap_year(year) and month == 2) else 1 <= date <= month_to_dates.get(month)
+    valid_date = 1 <= date <= 29 if (is_leap_year(year) and month == 2) else 1 <= date <= month_to_days.get(month)
     
     return valid_year and valid_month and valid_date
 
@@ -46,10 +54,19 @@ def return_leap_years(years:int)->set[int]:
     
     return leap_years, none_leap_years
 
-def years_to_days(years:int)->int:
+def years_to_days(year:int)->int:
     # number of leap years * 366
     # number of none leap years * 365
     
-    leap_years, none_leap_years = return_leap_years(years)
+    leap_years, none_leap_years = return_leap_years(year)
     return (366 * len(leap_years)) + (365 * len(none_leap_years))
     
+def months_to_days(year:int, month:int)->int:
+    # days for feb is 29 for leap year, else 28 days
+    days = sum([month_to_days.get(month) 
+                for month in range(1, month)])
+    
+    if is_leap_year(year) and month > 2:
+        return days + 1
+    else:
+        return days
