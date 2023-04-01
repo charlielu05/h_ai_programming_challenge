@@ -39,7 +39,10 @@ def transform_masks(mask_folder:str, threshold=240):
         mask_jpg = Image.open(mask_fp)
         mask_binary = mask_jpg.point(lambda x: 1 if x >= threshold else 0)
         mask_binary.save(mask_fp)
-    
+
+def transform_masks_multiclass(mask_folder:str):
+    pass
+
 if __name__ == "__main__":
     # get all folders in data
     source_path = Path(SOURCE_FOLDER)
