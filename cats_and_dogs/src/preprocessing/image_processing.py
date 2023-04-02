@@ -81,39 +81,51 @@ def read_csv(csv_fp:str)->list[list[str,str]]:
         
     return list_of_rows
 
-
+def check_image_channels(folder_name:list[Path]):
+    for image_filename in folder_name:
+        img = Image.open(image_filename)
+        try:
+            assert len(img.getbands()) == 3
+        except AssertionError:
+            print(image_filename)
+            
 if __name__ == "__main__":
-    # get all folders in data
-    # source_path = Path(SOURCE_FOLDER)
-    # directory_names = [f for f in source_path.iterdir() if f.is_dir()]
-    # read mapping csv
-    METADATA_FP = './filename_mapping.csv'
+
+    # # read mapping csv
+    # METADATA_FP = './filename_mapping.csv'
     
-    filename_mapping_csv = read_csv(METADATA_FP)
-    # convert to internal representation 
-    filename_mapping_data = [fileMapping(*csv_row) 
-                             for csv_row 
-                             in filename_mapping_csv]
+    # filename_mapping_csv = read_csv(METADATA_FP)
+    # # convert to internal representation 
+    # filename_mapping_data = [fileMapping(*csv_row) 
+    #                          for csv_row 
+    #                          in filename_mapping_csv]
     
-    # create file paths
-    create_directory(IMG_FOLDER)
-    create_directory(MASK_FOLDER)
-    create_directory(MULTICLASS_MASK_FOLDER)
+    # # create file paths
+    # create_directory(IMG_FOLDER)
+    # create_directory(MASK_FOLDER)
+    # create_directory(MULTICLASS_MASK_FOLDER)
     
-    # move image files
-    rename_and_copy_files(filename_mapping_data, 
-                          SOURCE_FOLDER,
-                          'image.jpg', 
-                          IMG_FOLDER)
+    # # move image files
+    # rename_and_copy_files(filename_mapping_data, 
+    #                       SOURCE_FOLDER,
+    #                       'image.jpg', 
+    #                       IMG_FOLDER)
     
-    # make a copy for multiclass masks
-    rename_and_copy_files(filename_mapping_data, 
-                          SOURCE_FOLDER,
-                          'mask.jpg', 
-                          MASK_FOLDER)
+    # # make a copy for multiclass masks
+    # rename_and_copy_files(filename_mapping_data, 
+    #                       SOURCE_FOLDER,
+    #                       'mask.jpg', 
+    #                       MASK_FOLDER)
     
-    # apply transform on masks to multiclass mapping value
-    transform_masks_multiclass(MASK_FOLDER,
-                               MULTICLASS_MASK_FOLDER, 
-                               filename_mapping_data)
+    # # apply transform on masks to multiclass mapping value
+    # transform_masks_multiclass(MASK_FOLDER,
+    #                            MULTICLASS_MASK_FOLDER, 
+    #                            filename_mapping_data)
     
+    # issue with three images that are RGBA(4 channels) instead of RGB(3 channels)
+    # data/imgs/3e3f9a88-b923-5b94-a16a-4371363b7518.jpg
+    # data/imgs/5d03377b-7587-5e0a-8587-51da73733ef3.jpg
+    # data/imgs/a4e8e1ae-6184-52a0-84b8-318db5aeb263.jpg
+    test_path = Path(IMG_FOLDER)
+    filenames = [f for f in test_path.iterdir() if f.is_file()]
+    check_image_channels(filenames)
