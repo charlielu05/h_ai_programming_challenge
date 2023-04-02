@@ -14,3 +14,5 @@ Image processing (pet and filename mapping) ->
 
 Issue with using pil.image.point for thresholding, spent way too long trying to figure this out thinking it was a data type problem.
 finally figured out that it was PIL doing lossy compression when saving as jpg, converting to png solved issue
+
+Issue with training loop where an image had 4 channels instead of expected 3 channels. Solved by creating function to find the offending images and deleting them along with the masks.
