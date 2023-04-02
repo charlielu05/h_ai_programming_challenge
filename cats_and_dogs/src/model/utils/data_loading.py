@@ -67,7 +67,7 @@ class BasicDataset(Dataset):
         w, h = pil_img.size
         # hard-coding this to work with cats and dogs images
         # newW, newH = int(scale * w), int(scale * h)
-        newW, newH = 256, 256
+        newW, newH = 300, 300
         assert newW > 0 and newH > 0, 'Scale is too small, resized images would have no pixel'
         
         pil_img = pil_img.resize((newW, newH), resample=Image.NEAREST if is_mask else Image.BICUBIC)

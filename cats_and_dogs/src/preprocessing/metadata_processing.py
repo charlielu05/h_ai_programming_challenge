@@ -3,8 +3,9 @@ import csv
 from collections import Counter
 
 PERMITTED_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,_" 
+METADATA_FP = "./raw_data/pets_dataset_info.csv"
 
-with open('../pets_dataset_info.csv', newline='') as csvfile:
+with open(METADATA_FP, newline='') as csvfile:
     reader = csv.DictReader(csvfile)
     list_of_dict = list(reader)
     
@@ -27,9 +28,12 @@ for sample in list_of_dict:
         all_breeds_set.add(breed)
 
 # create mapping for multi-class
+# we convert the set into a sorted list(deterministic ordering for mapping integer) 
+# dict comprehension to map breed (key) to our integer value (value)
+# starting at 1 since 0 will be background
 single_pet_mapping = {breed: mapping_integer 
                       for mapping_integer, breed 
-                      in enumerate(list(single_pet_set), 1)}
+                      in enumerate(sorted(list(single_pet_set)), 1)}
 
 # save mapping as csv
 column_name = ['breed', 'mapping']
@@ -38,7 +42,6 @@ with open(csv_filename, 'w') as csvfile:
     w = csv.writer(csvfile)
     w.writerows(single_pet_mapping.items())
 
-#%%
 # save mapping for file name to breed mapping
 single_pet_file_mapping = {}
 multi_pet_file_mapping = {}
@@ -58,7 +61,12 @@ csv_filename = 'filename_mapping.csv'
 with open(csv_filename, 'w') as csvfile:
     w = csv.writer(csvfile)
     w.writerows(single_pet_file_mapping.items())      
-     
+
+multi_pet_filename = 'multipet_filename_mapping.csv'
+with open(multi_pet_filename, 'w') as csvfile:
+    w = csv.writer(csvfile)
+    w.writerows(multi_pet_file_mapping.items())     
+    
 # how many images for each single breed, check to make sure this is balanced
 single_pet_breed_count = Counter(single_pet_file_mapping.values())
 min_count = min(single_pet_breed_count.values()) # 184
