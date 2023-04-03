@@ -39,20 +39,7 @@ def rename_and_copy_files(file_mappings:list[fileMapping],
             print(f"Copied 100 {source_filename} files")
         
         copyfile(source_fullpath, target_fullpath)
-
-def transform_masks(mask_folder:str, threshold=240):
-    # convert to binary representation
-    # pixel >= 240 (95% confidence) == 255
-    mask_files_fp = [f for f in Path(mask_folder).iterdir() if f.is_file()] 
-    
-    for mask_fp in mask_files_fp:
-        print(f"Binarizing: {mask_fp}")
-        mask_jpg = Image.open(mask_fp)
-        mask_binary = mask_jpg.point(lambda x: 1 
-                                     if x >= threshold 
-                                     else 0)
-        mask_binary.save(mask_fp)
-
+        
 def transform_masks_multiclass(mask_folder:str, 
                                target_folder:str, 
                                mapping_values:fileMapping):

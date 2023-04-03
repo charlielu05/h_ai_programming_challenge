@@ -2,16 +2,25 @@
 import argparse
 import logging
 import os
-
+import csv
 import numpy as np
 import torch
 import torch.nn.functional as F
 from PIL import Image
 from torchvision import transforms
-
 from utils.data_loading import BasicDataset
 from unet import UNet
-from utils.utils import plot_img_and_mask
+from utils.predict_utils import (DOG_BREED, 
+                                 CAT_BREED, 
+                                 read_csv,
+                                 create_mapping_to_breed_dict, 
+                                 mask_to_breed, 
+                                 convert_breed_pixel_count_to_percentage,
+                                 assign_breed_to_pixel_percentage,
+                                 assign_breeds_to_species,
+                                 binarize_mask)
+
+BREED_MAPPING_FP = "./pet_breed_mapping.csv"
 
 def predict_img(net,
                 full_img,
@@ -33,10 +42,9 @@ def predict_img(net,
 
     return mask[0].long().squeeze().numpy()
 
-
 def get_args():
     parser = argparse.ArgumentParser(description='Predict masks from input images')
-    parser.add_argument('--model', '-m', default='MODEL.pth', metavar='FILE',
+    parser.add_argument('--model', '-m', default='cad.pth', metavar='FILE',
                         help='Specify the file in which the model is stored')
     parser.add_argument('--input', '-i', metavar='INPUT', nargs='+', help='Filenames of input images', required=True)
     parser.add_argument('--output', '-o', metavar='OUTPUT', nargs='+', help='Filenames of output images')
@@ -48,7 +56,7 @@ def get_args():
     parser.add_argument('--scale', '-s', type=float, default=0.5,
                         help='Scale factor for the input images')
     parser.add_argument('--bilinear', action='store_true', default=False, help='Use bilinear upsampling')
-    parser.add_argument('--classes', '-c', type=int, default=2, help='Number of classes')
+    parser.add_argument('--classes', '-c', type=int, default=38, help='Number of classes')
     
     return parser.parse_args()
 
@@ -76,6 +84,29 @@ def mask_to_image(mask: np.ndarray, mask_values):
 
     return Image.fromarray(out)
 
+def return_results(predicted_mask:np.ndarray, mapping_fp:str):
+    # given predicted mask and the mapping file
+    # returns binarized mask, predicted breeds and predicted species
+    
+    binarized_mask = binarize_mask(predicted_mask)
+    
+    breed_mapping = read_csv(mapping_fp)
+    
+    mapping_to_breed_dict = create_mapping_to_breed_dict(breed_mapping)
+    
+    # map the predicted mask back to breed
+    breed_pixel_count = mask_to_breed(predicted_mask, mapping_to_breed_dict)
+    
+    # convert pixel to percentage of image
+    breed_pixel_percentage = convert_breed_pixel_count_to_percentage(breed_pixel_count)
+    
+    # find breed given percentage, using heuristic for now
+    breeds_predicted = assign_breed_to_pixel_percentage(breed_pixel_percentage, 0.002)
+    
+    # map breed to either cats or dogs
+    species_predicted = assign_breeds_to_species(breeds_predicted, DOG_BREED, CAT_BREED)
+    
+    return binarized_mask, breeds_predicted, species_predicted
 
 if __name__ == '__main__':
     args = get_args()
@@ -106,13 +137,6 @@ if __name__ == '__main__':
                            scale_factor=args.scale,
                            out_threshold=args.mask_threshold,
                            device=device)
-
-        if not args.no_save:
-            out_filename = out_files[i]
-            result = mask_to_image(mask, mask_values)
-            result.save(out_filename)
-            logging.info(f'Mask saved to {out_filename}')
-
-        if args.viz:
-            logging.info(f'Visualizing results for image {filename}, close to continue...')
-            plot_img_and_mask(img, mask)
+    
+        binary_mask, predicted_breeds, predicted_species = return_results(mask, BREED_MAPPING_FP)
+        
