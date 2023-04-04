@@ -1,2 +1,10 @@
 venv
 *.pyc
+data
+.cad
+.dbd
+.DS_Store
+*.csv
+.coverage
+raw_data
+*.pt

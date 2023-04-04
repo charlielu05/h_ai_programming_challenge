@@ -11,6 +11,11 @@ python-test:
 	. venv/bin/activate
 	python -m pytest --cov=src/ tests/
 
+python-dbd:
+	. venv/bin/activate
+	python ./src/dbd.py
+
+	
 .PHONY: *
 .ONESHELL:
 .SILENT:

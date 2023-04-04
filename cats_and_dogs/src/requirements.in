@@ -1,0 +1,5 @@
+tqdm
+Pillow
+matplotlib
+pytest
+pytest-cov
