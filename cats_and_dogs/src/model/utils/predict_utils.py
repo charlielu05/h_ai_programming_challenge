@@ -41,12 +41,14 @@ DOG_BREED = set(['american_bulldog',
                 'wheaten_terrier',
                 'yorkshire_terrier'])
 
-def binarize_mask(mask: np.ndarray):
+def binarize_mask(mask: np.ndarray)->list[list[int]]:
     # convert to binary representation
+    # return as list instead of numpy array for serialization
     # pixel >= 1 == 1 else 0
-    mask[mask >= 1] = 1
+    binary_mask = mask.copy()
+    binary_mask[binary_mask >= 1] = 1
     
-    return mask
+    return binary_mask.tolist()
 
 def read_csv(mapping_fp):
     # read in breed mapping csv
@@ -93,7 +95,7 @@ def assign_breed_to_pixel_percentage(breed_pixel_percentage: dict[str, int],
 
 def assign_breeds_to_species(predicted_breeds:list[str], 
                              dog_breeds:set[str], 
-                             cat_breeds:set[str])->set[str]:
+                             cat_breeds:set[str])->list[str]:
     
     # might be safer to be explicit and check membership for both dog and cat breed here to catch bugs
     species_present = set(['dog' if breed in dog_breeds

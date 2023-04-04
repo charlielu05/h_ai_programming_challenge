@@ -5,15 +5,14 @@ import csv
 import os
 from shutil import copyfile
 from pathlib import Path
-from pathlib import PosixPath
 from PIL import Image
 from dataclasses import dataclass
-import numpy as np
 
 IMG_FOLDER = "data/imgs"
 MASK_FOLDER = 'data/masks'
 MULTICLASS_MASK_FOLDER = "data/multiclass_masks"
 SOURCE_FOLDER = "raw_data/data"
+METADATA_FP = './filename_mapping.csv'
 
 @dataclass
 class fileMapping:
@@ -42,7 +41,7 @@ def rename_and_copy_files(file_mappings:list[fileMapping],
         
 def transform_masks_multiclass(mask_folder:str, 
                                target_folder:str, 
-                               mapping_values:fileMapping):
+                               mapping_values:list[fileMapping]):
     # given mapping values and mask images, convert 8 bit values in image masks into corresponding class mapping integer value
     
     for mapping_data in mapping_values:
@@ -54,7 +53,7 @@ def transform_masks_multiclass(mask_folder:str,
                                      if x >= 1 
                                      else 0)
         target_fp = Path(target_folder + '/' + mapping_data.filename + '.png')
-        #print(f"Saving multiclass masks to {mask_fp}")
+        print(f"Saving multiclass masks to {target_fp}")
         mask_mapping.save(target_fp)
     
 def create_directory(folder_name:str):
@@ -90,8 +89,6 @@ def delete_files(folder:str, filenames: list[str], mask=False):
         
 if __name__ == "__main__":
     # read mapping csv
-    METADATA_FP = './filename_mapping.csv'
-    
     filename_mapping_csv = read_csv(METADATA_FP)
     # convert to internal representation 
     filename_mapping_data = [fileMapping(*csv_row) 

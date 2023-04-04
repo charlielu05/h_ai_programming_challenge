@@ -2,14 +2,9 @@
 
 import argparse
 import logging
-import os
-import random
-import sys
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torchvision.transforms as transforms
-import torchvision.transforms.functional as TF
 from pathlib import Path
 from torch import optim
 from torch.utils.data import DataLoader, random_split
@@ -17,12 +12,11 @@ from tqdm import tqdm
 
 from evaluate import evaluate
 from unet import UNet
-from utils.data_loading import BasicDataset, CarvanaDataset
+from utils.data_loading import BasicDataset
 from utils.dice_score import dice_loss
 
 dir_img = Path('./data/imgs/')
 dir_mask = Path('./data/multiclass_masks/')
-dir_checkpoint = Path('./checkpoints/')
 
 def train_model(
         model,
@@ -39,10 +33,7 @@ def train_model(
         gradient_clipping: float = 1.0,
 ):
     # 1. Create dataset
-    try:
-        dataset = CarvanaDataset(dir_img, dir_mask, img_scale)
-    except (AssertionError, RuntimeError, IndexError):
-        dataset = BasicDataset(dir_img, dir_mask, img_scale)
+    dataset = BasicDataset(dir_img, dir_mask, img_scale)
 
     # 2. Split into train / validation partitions
     n_val = int(len(dataset) * val_percent)
@@ -124,12 +115,10 @@ def train_model(
 
                         logging.info('Validation Dice score: {}'.format(val_score))
 
-        if save_checkpoint:
-            Path(dir_checkpoint).mkdir(parents=True, exist_ok=True)
-            state_dict = model.state_dict()
-            state_dict['mask_values'] = dataset.mask_values
-            torch.save(state_dict, str(dir_checkpoint / 'checkpoint_epoch{}.pth'.format(epoch)))
-            logging.info(f'Checkpoint {epoch} saved!')
+    # save model
+    state_dict = model.state_dict()
+    state_dict['mask_values'] = dataset.mask_values
+    torch.save(state_dict, 'cad.pt')
 
 # %%
 def get_args():

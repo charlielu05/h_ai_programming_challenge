@@ -2,12 +2,11 @@
 import argparse
 import logging
 import os
-import csv
+import json
 import numpy as np
 import torch
 import torch.nn.functional as F
 from PIL import Image
-from torchvision import transforms
 from utils.data_loading import BasicDataset
 from unet import UNet
 from utils.predict_utils import (DOG_BREED, 
@@ -44,7 +43,7 @@ def predict_img(net,
 
 def get_args():
     parser = argparse.ArgumentParser(description='Predict masks from input images')
-    parser.add_argument('--model', '-m', default='cad.pth', metavar='FILE',
+    parser.add_argument('--model', '-m', default='cad.pt', metavar='FILE',
                         help='Specify the file in which the model is stored')
     parser.add_argument('--input', '-i', metavar='INPUT', nargs='+', help='Filenames of input images', required=True)
     parser.add_argument('--output', '-o', metavar='OUTPUT', nargs='+', help='Filenames of output images')
@@ -128,6 +127,8 @@ if __name__ == '__main__':
 
     logging.info('Model loaded!')
 
+    json_payloads = []
+    
     for i, filename in enumerate(in_files):
         logging.info(f'Predicting image {filename} ...')
         img = Image.open(filename)
@@ -139,4 +140,12 @@ if __name__ == '__main__':
                            device=device)
     
         binary_mask, predicted_breeds, predicted_species = return_results(mask, BREED_MAPPING_FP)
+        json_payloads.append({'mask': binary_mask,
+                            'predicted_breeds': predicted_breeds,
+                            'predicted_species': predicted_species}
+                            )
+    
+    # save to json file
+    with open('predictions.json', 'w') as json_file:
+        json_file.write(json.dumps(json_payloads))
         
