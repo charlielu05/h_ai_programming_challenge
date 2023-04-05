@@ -41,6 +41,7 @@ cats_and_dogs
 ```
 ## Get Started
 - Set up the python virtualenv: `make python-env`
+- Run tests: `make python-test`
 - Run the preprocessing tasks:
     - Metadata: `make process-metadata`
     - Images: `make process-image`
